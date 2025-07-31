@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/AppRoman.iml" filepath="$PROJECT_DIR$/.idea/AppRoman.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/SubAquatiqueThreatGenerator.iml" filepath="$PROJECT_DIR$/.idea/SubAquatiqueThreatGenerator.iml" />
     </modules>
   </component>
 </project>
