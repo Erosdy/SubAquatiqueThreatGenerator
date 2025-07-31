@@ -27,7 +27,7 @@ class Fish(Entities):
         else:
             self.y = self.y + self.speed
 
-    def __init__(self):
+    def __init__(self, min_speed=2, max_speed=3):
         _direction = list(Orientation)
         self.orientation = random.choice(_direction)
 
@@ -53,4 +53,4 @@ class Fish(Entities):
             self.x = random.randint(0 - self.width, window.get_width() + self.width)
             self.y = 0 - self.height
 
-        self.speed = random.randint(2, 3)
+        self.speed = random.randint(min_speed, max_speed)

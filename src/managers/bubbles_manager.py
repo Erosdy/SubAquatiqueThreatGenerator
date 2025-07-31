@@ -3,7 +3,7 @@ import random
 from src.entities.bubble import Bubble
 
 class BubblesManager:
-    MAX_BUBBLES = 500
+    MAX_BUBBLES = 3
 
     show_animals = True
     delay_min_s = 0.25
@@ -30,7 +30,7 @@ class BubblesManager:
     def generate_bubbles(self, timer):
         delay_since_last_bubble = timer - self.timer_last_bubble
         if len(self.bubbles) < BubblesManager.MAX_BUBBLES and delay_since_last_bubble >= self.delay_next_bubble:
-            bubble = Bubble()
+            bubble = Bubble(min_speed=self.min_speed, max_speed=self.max_speed)
             self.bubbles.append(bubble)
             self.timer_last_bubble = timer
             self.set_delay_next_bubble()

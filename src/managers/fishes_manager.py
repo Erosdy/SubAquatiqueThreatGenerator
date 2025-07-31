@@ -3,7 +3,7 @@ import random
 from src.entities.fish import Fish
 
 class FishesManager:
-    MAX_FISHES = 500
+    MAX_FISHES = 10
 
     show_animals = True
     delay_min_s = 0.25
@@ -30,7 +30,7 @@ class FishesManager:
     def generate_fishes(self, timer):
         delay_since_last_fish = timer - self.timer_last_fish
         if len(self.fishes) < FishesManager.MAX_FISHES and delay_since_last_fish >= self.delay_next_fish:
-            fish = Fish()
+            fish = Fish(min_speed=self.min_speed, max_speed=self.max_speed)
             self.fishes.append(fish)
             self.timer_last_fish = timer
             self.set_delay_next_fish()

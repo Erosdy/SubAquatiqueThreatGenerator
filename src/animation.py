@@ -2,7 +2,7 @@ import pygame
 
 from src.managers.bubbles_manager import BubblesManager
 from src.managers.fishes_manager import FishesManager
-
+from src.managers.threats_manager import ThreatsManager
 
 
 def run(background_color, color_a, color_b, color_change_start, color_transition_duration,
@@ -16,9 +16,6 @@ def run(background_color, color_a, color_b, color_change_start, color_transition
 
     pygame.init()
 
-    fishes_manager = FishesManager(show_animals=show_animals, delay_min_s=poisson_delay_min_s, delay_max_s=poisson_delay_max_s,min_speed=poisson_speed_min, max_speed=poisson_speed_max)
-    bubbles_manager = BubblesManager(show_animals=show_animals, delay_min_s=bulle_delay_min_s, delay_max_s=bulle_delay_max_s,min_speed=bulle_speed_min, max_speed=bulle_speed_max)
-
     screen_size = (1920, 1280)
     flags = pygame.FULLSCREEN if fullscreen else 0
     screen = pygame.display.set_mode(screen_size, flags)
@@ -26,6 +23,23 @@ def run(background_color, color_a, color_b, color_change_start, color_transition
 
     clock = pygame.time.Clock()
     FPS = 150
+
+    fishes_manager = FishesManager(show_animals=show_animals, delay_min_s=poisson_delay_min_s,
+                                   delay_max_s=poisson_delay_max_s, min_speed=poisson_speed_min,
+                                   max_speed=poisson_speed_max)
+    bubbles_manager = BubblesManager(show_animals=show_animals, delay_min_s=bulle_delay_min_s,
+                                     delay_max_s=bulle_delay_max_s, min_speed=bulle_speed_min,
+                                     max_speed=bulle_speed_max)
+    threats_manager = ThreatsManager(fps=FPS, color_a=color_a, color_b=color_b,
+                                     color_change_start=color_change_start,
+                                     color_transition_duration=color_transition_duration,
+                                     growth_duration=growth_duration, max_radius=max_radius,
+                                     shape_type=shape_type, initial_radius=initial_radius,
+                                     growth_mode=growth_mode, exp_base=exp_base, exp_switch=exp_switch,
+                                     exp_a=exp_a, exp_b=exp_b, exp_k=exp_k,
+                                     use_gradient_bg=use_gradient_bg,
+                                     gradient_color_start=gradient_color_start,
+                                     gradient_color_end=gradient_color_end)
 
     running = True
     timer = 0
@@ -38,15 +52,16 @@ def run(background_color, color_a, color_b, color_change_start, color_transition
                 running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
-                    continue
+                    threats_manager.play_or_pause()
                 elif event.key == pygame.K_r:
-                    continue
+                    threats_manager.reset()
                 elif event.key == pygame.K_ESCAPE:
                     running = False
 
 
         fishes_manager.manage_fishes(timer, screen)
         bubbles_manager.manage_bubbles(timer, screen)
+        threats_manager.manage_threats(screen)
 
         pygame.display.flip()
         clock.tick(FPS)

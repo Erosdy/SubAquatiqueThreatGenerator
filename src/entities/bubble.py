@@ -19,7 +19,7 @@ class Bubble(Entities):
     def move(self):
         self.y = self.y - self.speed
 
-    def __init__(self):
+    def __init__(self, min_speed=3, max_speed=8):
         if Bubble._IMG is None:
             Bubble._IMG = self.load_image_safe(Bubble._IMG_PATH, Orientation.UP)
 
@@ -32,4 +32,4 @@ class Bubble(Entities):
         self.x = random.randint(0 - self.width, window.get_width() + self.width)
         self.y = random.randint(0 - self.height, window.get_height() + self.height)
 
-        self.speed = random.randint(2, 3)
+        self.speed = random.randint(min_speed, max_speed)
