@@ -2,8 +2,10 @@ import threading
 import tkinter as tk
 from tkinter import colorchooser
 from tkinter import ttk
+
 from animation import run
-from src.growth_equation import compute_growth
+from src.entities.threat import Shape
+from src.growth_equation import compute_growth, GrowthMode
 
 
 class Menu(tk.Tk):
@@ -23,17 +25,13 @@ class Menu(tk.Tk):
         self.color_transition_duration = tk.DoubleVar(value=2.0)
         self.max_radius = tk.IntVar(value=290)
         self.initial_radius = tk.IntVar(value=10)
-        self.shape_type = tk.StringVar(value="circle")
+        self.shape_type = tk.StringVar(value=Shape.CIRCLE.value)
 
         self.growth_mode = tk.StringVar(value="linear")
-        self.exp_base = tk.DoubleVar(value=2.0)
-        self.exp_switch = tk.DoubleVar(value=0.8)
         self.exp_a = tk.DoubleVar(value=0.3)
-        self.exp_b = tk.DoubleVar(value=50.0)
-        self.exp_k = tk.DoubleVar(value=0.0)
+        self.exp_b = tk.DoubleVar(value=0.7)
 
         self.show_animals = tk.BooleanVar(value=True)
-        # TODO à mapper sur les vitesses des entités
         self.bulle_speed_min = tk.DoubleVar(value=3.0)
         self.bulle_speed_max = tk.DoubleVar(value=8.0)
         self.poisson_speed_min = tk.DoubleVar(value=2.0)
@@ -45,6 +43,7 @@ class Menu(tk.Tk):
         self.poisson_delay_max_s = tk.DoubleVar(value=2.0)
 
         row = 0
+
         def add_entry(label, var):
             nonlocal row
             tk.Label(self, text=label).grid(row=row, column=0, sticky="w")
@@ -85,20 +84,19 @@ class Menu(tk.Tk):
         add_entry("Taille initiale", self.initial_radius)
 
         tk.Label(self, text="Forme").grid(row=row, column=0, sticky="w")
-        shape_menu = ttk.Combobox(self, textvariable=self.shape_type, values=["circle", "square"], state="readonly")
+        shape_menu = ttk.Combobox(self, textvariable=self.shape_type, values=[shape.value for shape in Shape],
+                                  state="readonly")
         shape_menu.grid(row=row, column=1)
         row += 1
 
         tk.Label(self, text="Mode de croissance").grid(row=row, column=0, sticky="w")
-        mode_menu = ttk.Combobox(self, textvariable=self.growth_mode, values=["linear", "sigmoïdal", "power"],
+        mode_menu = ttk.Combobox(self, textvariable=self.growth_mode, values=[mode.value for mode in GrowthMode],
                                  state="readonly")
         mode_menu.grid(row=row, column=1)
         row += 1
 
-        add_entry("Poids linéaire (a)", self.exp_a)
-        add_entry("Pente sigmoïde (b)", self.exp_b)
-        add_entry("Position switch (h)", self.exp_switch)
-        add_entry("Offset (k)", self.exp_k)
+        add_entry("Fin de croissance (a)", self.exp_a)
+        add_entry("Début de décroissance (b)", self.exp_b)
 
         tk.Checkbutton(self, text="Plein écran", variable=self.fullscreen).grid(row=row, column=0, columnspan=2,
                                                                                 sticky="w")
@@ -138,15 +136,13 @@ class Menu(tk.Tk):
                                                                                  pady=10)
 
         # Mise à jour de la courbe à chaque changement
-        self.growth_mode.trace_add("write", lambda *args: self.draw_curve(self.exp_switch.get()))
-        self.exp_a.trace_add("write", lambda *args: self.draw_curve(self.exp_switch.get()))
-        self.exp_b.trace_add("write", lambda *args: self.draw_curve(self.exp_switch.get()))
-        self.exp_k.trace_add("write", lambda *args: self.draw_curve(self.exp_switch.get()))
-        self.exp_switch.trace_add("write", lambda *args: self.draw_curve(self.exp_switch.get()))
+        self.growth_mode.trace_add("write", self.draw_curve)
+        self.exp_a.trace_add("write", self.draw_curve)
+        self.exp_b.trace_add("write", self.draw_curve)
 
         self.draw_curve()
 
-    def draw_curve(self, moving_point_progress=0.8, *args):
+    def draw_curve(self, *args):
         self.curve_canvas.delete("all")
 
         # Récupération des dimensions réelles du canvas
@@ -164,18 +160,16 @@ class Menu(tk.Tk):
         plot_height = height - padding_top - padding_bottom
 
         # Paramètres de la courbe
-        mode = self.growth_mode.get()
+        mode = GrowthMode(self.growth_mode.get())
         a = self.exp_a.get()
         b = self.exp_b.get()
-        k = self.exp_k.get()
-        h = self.exp_switch.get()
 
         steps = 100
         points = []
 
         for i in range(steps + 1):
             progress = i / steps
-            y = compute_growth(progress, mode, 0, h, a, b, k)
+            y = compute_growth(progress, mode, a=a, b=b)
             x_px = padding_left + progress * plot_width
             y_px = height - padding_bottom - y * plot_height
             points.append((x_px, y_px))
@@ -183,13 +177,6 @@ class Menu(tk.Tk):
         # Tracer la courbe
         for i in range(len(points) - 1):
             self.curve_canvas.create_line(*points[i], *points[i + 1], fill="blue", width=2)
-
-        # Tracer le point rouge mobile (optionnel)
-        mp_x = padding_left + moving_point_progress * plot_width
-        mp_y_val = compute_growth(moving_point_progress, mode, 0, h, a, b, k)
-        mp_y = height - padding_bottom - mp_y_val * plot_height
-        r = 4
-        self.curve_canvas.create_oval(mp_x - r, mp_y - r, mp_x + r, mp_y + r, fill="red")
 
         # Axe X
         self.curve_canvas.create_line(
@@ -257,23 +244,18 @@ class Menu(tk.Tk):
             "color_b": self.color_b,
             "growth_duration": self.growth_duration.get(),
             "max_radius": self.max_radius.get(),
-            "shape_type": self.shape_type.get(),
+            "shape_type": Shape(self.shape_type.get()),
             "initial_radius": self.initial_radius.get(),
             "fullscreen": self.fullscreen.get(),
-            "growth_mode": self.growth_mode.get(),
-            "exp_base": self.exp_base.get(),
-            "exp_switch": self.exp_switch.get(),
+            "growth_mode": GrowthMode(self.growth_mode.get()),
             "exp_a": self.exp_a.get(),
             "exp_b": self.exp_b.get(),
-            "exp_k": self.exp_k.get(),
             "color_change_start": self.color_change_start.get(),
             "color_transition_duration": self.color_transition_duration.get(),
             "use_gradient_bg": self.use_gradient_bg.get(),
             "gradient_color_start": self.gradient_color_start,
             "gradient_color_end": self.gradient_color_end,
             "show_animals": self.show_animals.get(),
-
-            # Nouveaux paramètres passés au moteur pygame :
             "bulle_speed_min": self.bulle_speed_min.get(),
             "bulle_speed_max": self.bulle_speed_max.get(),
             "bulle_delay_min_s": self.bulle_delay_min_s.get(),

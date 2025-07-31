@@ -1,21 +1,20 @@
 import random
 
 from src.entities.bubble import Bubble
+from src.managers.entity_manager import EntityManager
 
-class BubblesManager:
-    MAX_BUBBLES = 3
 
-    show_animals = True
-    delay_min_s = 0.25
-    delay_max_s = 3.0
-    min_speed = 3
-    max_speed = 8
-    timer_last_bubble = 0.0
-    delay_next_bubble = None
-
-    bubbles = []
+class BubblesManager(EntityManager):
+    show_animals: bool = True
+    delay_min_s: float = 0.25
+    delay_max_s: float = 3.0
+    min_speed: float = 3
+    max_speed: float = 8
+    timer_last_bubble: float = 0
+    delay_next_bubble: float = None
 
     def __init__(self, show_animals, delay_min_s, delay_max_s, min_speed, max_speed):
+        super().__init__(3)
         self.show_animals = show_animals
         self.delay_min_s = delay_min_s
         self.delay_max_s = delay_max_s
@@ -27,24 +26,25 @@ class BubblesManager:
     def set_delay_next_bubble(self):
         self.delay_next_bubble = random.uniform(self.delay_min_s, self.delay_max_s)
 
-    def generate_bubbles(self, timer):
+    def generate_bubbles(self, timer: float):
         delay_since_last_bubble = timer - self.timer_last_bubble
-        if len(self.bubbles) < BubblesManager.MAX_BUBBLES and delay_since_last_bubble >= self.delay_next_bubble:
+        if len(self.entities) < self.max_entities and delay_since_last_bubble >= self.delay_next_bubble:
             bubble = Bubble(min_speed=self.min_speed, max_speed=self.max_speed)
-            self.bubbles.append(bubble)
+            self.entities.append(bubble)
             self.timer_last_bubble = timer
             self.set_delay_next_bubble()
 
-    def display_bubbles(self, screen):
+    def display_entities(self):
         copy_bubbles = []
-        for p in self.bubbles:
-            p.move()
-            if not(p.x > screen.get_width() + p.width or p.x < -p.width or p.y > screen.get_height() + p.height or p.y < -p.height) :
-                copy_bubbles.append(p)
-            screen.blit(p.img, (int(p.x), int(p.y)))
-        self.bubbles = copy_bubbles
+        for entity in self.entities:
+            entity.move()
+            if entity.is_in_screen():
+                copy_bubbles.append(entity)
+            entity.display_entity()
 
-    def manage_bubbles(self, timer, screen):
+        self.entities = copy_bubbles
+
+    def manage_entities(self, timer):
         if self.show_animals:
-            self.display_bubbles(screen)
+            self.display_entities()
             self.generate_bubbles(timer)

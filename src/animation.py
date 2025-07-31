@@ -7,13 +7,12 @@ from src.managers.threats_manager import ThreatsManager
 
 def run(background_color, color_a, color_b, color_change_start, color_transition_duration,
         growth_duration, max_radius, shape_type, initial_radius, fullscreen,
-        growth_mode, exp_base, exp_switch, exp_a, exp_b, exp_k,
+        growth_mode, exp_a, exp_b,
         use_gradient_bg, gradient_color_start, gradient_color_end, show_animals,
         bulle_speed_min, bulle_speed_max,
         bulle_delay_min_s, bulle_delay_max_s,
         poisson_delay_min_s, poisson_delay_max_s,
         poisson_speed_min, poisson_speed_max):
-
     pygame.init()
 
     screen_size = (1920, 1280)
@@ -22,7 +21,7 @@ def run(background_color, color_a, color_b, color_change_start, color_transition
     pygame.display.set_caption("Croissance de forme symétrique")
 
     clock = pygame.time.Clock()
-    FPS = 150
+    FPS = 60
 
     fishes_manager = FishesManager(show_animals=show_animals, delay_min_s=poisson_delay_min_s,
                                    delay_max_s=poisson_delay_max_s, min_speed=poisson_speed_min,
@@ -35,8 +34,7 @@ def run(background_color, color_a, color_b, color_change_start, color_transition
                                      color_transition_duration=color_transition_duration,
                                      growth_duration=growth_duration, max_radius=max_radius,
                                      shape_type=shape_type, initial_radius=initial_radius,
-                                     growth_mode=growth_mode, exp_base=exp_base, exp_switch=exp_switch,
-                                     exp_a=exp_a, exp_b=exp_b, exp_k=exp_k,
+                                     growth_mode=growth_mode, exp_a=exp_a, exp_b=exp_b,
                                      use_gradient_bg=use_gradient_bg,
                                      gradient_color_start=gradient_color_start,
                                      gradient_color_end=gradient_color_end)
@@ -58,10 +56,9 @@ def run(background_color, color_a, color_b, color_change_start, color_transition
                 elif event.key == pygame.K_ESCAPE:
                     running = False
 
-
-        fishes_manager.manage_fishes(timer, screen)
-        bubbles_manager.manage_bubbles(timer, screen)
-        threats_manager.manage_threats(screen)
+        fishes_manager.manage_entities(timer)
+        bubbles_manager.manage_entities(timer)
+        threats_manager.manage_entities(timer)
 
         pygame.display.flip()
         clock.tick(FPS)

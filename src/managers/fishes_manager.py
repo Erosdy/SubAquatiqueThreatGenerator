@@ -1,10 +1,10 @@
 import random
 
 from src.entities.fish import Fish
+from src.managers.entity_manager import EntityManager
 
-class FishesManager:
-    MAX_FISHES = 10
 
+class FishesManager(EntityManager):
     show_animals = True
     delay_min_s = 0.25
     delay_max_s = 3.0
@@ -13,9 +13,8 @@ class FishesManager:
     timer_last_fish = 0.0
     delay_next_fish = None
 
-    fishes = []
-
     def __init__(self, show_animals, delay_min_s, delay_max_s, min_speed, max_speed):
+        super().__init__(10)
         self.show_animals = show_animals
         self.delay_min_s = delay_min_s
         self.delay_max_s = delay_max_s
@@ -29,23 +28,22 @@ class FishesManager:
 
     def generate_fishes(self, timer):
         delay_since_last_fish = timer - self.timer_last_fish
-        if len(self.fishes) < FishesManager.MAX_FISHES and delay_since_last_fish >= self.delay_next_fish:
+        if len(self.entities) < self.max_entities and delay_since_last_fish >= self.delay_next_fish:
             fish = Fish(min_speed=self.min_speed, max_speed=self.max_speed)
-            self.fishes.append(fish)
+            self.entities.append(fish)
             self.timer_last_fish = timer
             self.set_delay_next_fish()
 
-    def display_fishes(self, screen):
+    def display_entities(self):
         copy_fish = []
-        for p in self.fishes:
-            p.move()
-            if not(p.x > screen.get_width() + p.width or p.x < -p.width or p.y > screen.get_height() + p.height or p.y < -p.height) :
-                copy_fish.append(p)
-            screen.blit(p.img, (int(p.x), int(p.y)))
-        self.fishes = copy_fish
+        for entity in self.entities:
+            entity.move()
+            if entity.is_in_screen():
+                copy_fish.append(entity)
+            entity.display_entity()
+        self.entities = copy_fish
 
-    def manage_fishes(self, timer, screen):
+    def manage_entities(self, timer):
         if self.show_animals:
-            self.display_fishes(screen)
+            self.display_entities()
             self.generate_fishes(timer)
-

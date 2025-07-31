@@ -1,14 +1,12 @@
 import random
 
-from src.entities.entities import Entities
 import pygame
 
-from src.orientation import Orientation
+from src.entities.entity import Entity
 
 
-class Bubble(Entities):
+class Bubble(Entity):
     _IMG_PATH = "../ressources/Bubble.png"
-    _IMG = None
 
     def draw_entite(self):
         surface = pygame.Surface((36, 36), pygame.SRCALPHA)
@@ -20,10 +18,7 @@ class Bubble(Entities):
         self.y = self.y - self.speed
 
     def __init__(self, min_speed=3, max_speed=8):
-        if Bubble._IMG is None:
-            Bubble._IMG = self.load_image_safe(Bubble._IMG_PATH, Orientation.UP)
-
-        self.img = Bubble._IMG
+        self.img = self.load_image_safe(Bubble._IMG_PATH)
         self.width = self.img.get_width()
         self.height = self.img.get_height()
 
