@@ -11,7 +11,6 @@ class Shape(Enum):
 
 
 class Threat(Entity):
-    ANIMATION_TIME = 600
     initial_color = (0, 0, 0)
     color = (0, 0, 0)
     initial_radius = 1
@@ -20,14 +19,16 @@ class Threat(Entity):
     shape = Shape.CIRCLE
     local_timer = 0
     mode: GrowthMode = GrowthMode.LINEAR
-    a = 0.3
-    b = 0.7
+    animation_duration = 600
+    end_growth = 0.3
+    start_degrowth = 0.7
 
     def __init__(self, shape: Shape = Shape.CIRCLE, radius=10, max_radius=500, color=(0, 0, 0), mode=GrowthMode.LINEAR,
-                a=0.3, b=0.7):
+                 end_growth=0.3, start_degrowth=0.7, animation_duration=10):
         self.initial_color = color
-        self.a = a
-        self.b = b
+        self.animation_duration = animation_duration
+        self.end_growth = end_growth
+        self.start_degrowth = start_degrowth
         self.mode = mode
         self.shape = shape
         self.initial_radius = radius
@@ -69,6 +70,6 @@ class Threat(Entity):
     def move(self):
         self.local_timer += 1
 
-        self.radius = self.initial_radius + self.max_radius * compute_growth(self.local_timer / self.ANIMATION_TIME, self.mode, self.a,
-                                                       self.b)
+        self.radius = self.initial_radius + self.max_radius * compute_growth(self.local_timer / self.animation_duration, self.mode, self.end_growth,
+                                                                             self.start_degrowth)
         self.adjuste_size()

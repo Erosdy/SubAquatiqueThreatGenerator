@@ -9,6 +9,8 @@ class GrowthMode(Enum):
 
 
 def linear_growth(x, a, b) -> float:
+    if a == 0:
+        return 0
     if x <= a:
         return x / a
     elif b >= x > a:
@@ -20,6 +22,8 @@ def linear_growth(x, a, b) -> float:
 
 
 def simgmoidal_growth(x, a, b) -> float:
+    if a == 0:
+        return 0
     if x <= a:
         return 1 / (1 + math.exp(-10 * (x / a - 0.5)))
     elif b >= x > a:
@@ -31,6 +35,8 @@ def simgmoidal_growth(x, a, b) -> float:
 
 
 def exponentiel_growth(x, a, b):
+    if a == 0:
+        return 0
     if x <= a:
         return (math.exp(x / a) - 1) / (math.exp(1) - 1)
     elif b >= x > a:

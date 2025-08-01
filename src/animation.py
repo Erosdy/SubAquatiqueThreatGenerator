@@ -5,10 +5,8 @@ from src.managers.fishes_manager import FishesManager
 from src.managers.threats_manager import ThreatsManager
 
 
-def run(background_color, color_a, color_b, color_change_start, color_transition_duration,
-        growth_duration, max_radius, shape_type, initial_radius, fullscreen,
-        growth_mode, exp_a, exp_b,
-        use_gradient_bg, gradient_color_start, gradient_color_end, show_animals,
+def run(background_color, color_begin, color_end, max_radius, shape_type, initial_radius, fullscreen,
+        growth_mode, end_growth, start_degrowth, animation_duration,show_animals,
         bulle_speed_min, bulle_speed_max,
         bulle_delay_min_s, bulle_delay_max_s,
         poisson_delay_min_s, poisson_delay_max_s,
@@ -29,13 +27,10 @@ def run(background_color, color_a, color_b, color_change_start, color_transition
     bubbles_manager = BubblesManager(show_animals=show_animals, delay_min_s=bulle_delay_min_s,
                                      delay_max_s=bulle_delay_max_s, min_speed=bulle_speed_min,
                                      max_speed=bulle_speed_max)
-    threats_manager = ThreatsManager(color_a=color_a, color_b=color_b,
-                                     max_radius=max_radius,
-                                     shape_type=shape_type, initial_radius=initial_radius,
-                                     growth_mode=growth_mode, exp_a=exp_a, exp_b=exp_b,
-                                     use_gradient_bg=use_gradient_bg,
-                                     gradient_color_start=gradient_color_start,
-                                     gradient_color_end=gradient_color_end)
+    threats_manager = ThreatsManager(color_begin=color_begin, color_end=color_end,
+                                     max_radius=max_radius, initial_radius=initial_radius,
+                                     shape_type=shape_type, growth_mode=growth_mode,
+                                     end_growth=end_growth, start_degrowth=start_degrowth, animation_duration=animation_duration * FPS)
 
     running = True
     timer = 0

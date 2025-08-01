@@ -18,18 +18,18 @@ class Menu(tk.Tk):
         self.use_gradient_bg = tk.BooleanVar(value=True)
         self.gradient_color_start = (242, 242, 242)
         self.gradient_color_end = (217, 217, 217)
-        self.color_a = (255, 255, 255)
-        self.color_b = (0, 0, 0)
-        self.growth_duration = tk.DoubleVar(value=5.0)
-        self.color_change_start = tk.DoubleVar(value=2.5)
-        self.color_transition_duration = tk.DoubleVar(value=2.0)
+        self.color_begin = (255, 255, 255)
+        self.color_end = (0, 0, 0)
+        self.transition_begin = tk.DoubleVar(value=0.2)
+        self.transition_end = tk.DoubleVar(value=0.8)
         self.max_radius = tk.IntVar(value=500)
         self.initial_radius = tk.IntVar(value=10)
         self.shape_type = tk.StringVar(value=Shape.CIRCLE.value)
 
         self.growth_mode = tk.StringVar(value="linear")
-        self.exp_a = tk.DoubleVar(value=0.45)
-        self.exp_b = tk.DoubleVar(value=0.55)
+        self.end_growth = tk.DoubleVar(value=0.45)
+        self.start_degrowth = tk.DoubleVar(value=0.55)
+        self.animation_duration = tk.DoubleVar(value=3)
 
         self.show_animals = tk.BooleanVar(value=True)
         self.bulle_speed_min = tk.DoubleVar(value=3.0)
@@ -58,8 +58,8 @@ class Menu(tk.Tk):
             row += 1
 
         self.bg_color_preview = tk.Canvas(self, width=20, height=20, bg=self.rgb_to_hex(self.bg_color))
-        self.color_a_preview = tk.Canvas(self, width=20, height=20, bg=self.rgb_to_hex(self.color_a))
-        self.color_b_preview = tk.Canvas(self, width=20, height=20, bg=self.rgb_to_hex(self.color_b))
+        self.color_a_preview = tk.Canvas(self, width=20, height=20, bg=self.rgb_to_hex(self.color_begin))
+        self.color_b_preview = tk.Canvas(self, width=20, height=20, bg=self.rgb_to_hex(self.color_end))
 
         add_color("Couleur du fond", self.choose_bg_color, self.bg_color_preview)
         add_color("Couleur A (départ)", self.choose_color_a, self.color_a_preview)
@@ -77,9 +77,6 @@ class Menu(tk.Tk):
         add_color("Dégradé - Couleur 1", self.choose_gradient_start, self.gradient_start_preview)
         add_color("Dégradé - Couleur 2", self.choose_gradient_end, self.gradient_end_preview)
 
-        add_entry("Début transition couleur (s)", self.color_change_start)
-        add_entry("Durée transition couleur (s)", self.color_transition_duration)
-        add_entry("Durée de croissance totale (s)", self.growth_duration)
         add_entry("Taille maximale", self.max_radius)
         add_entry("Taille initiale", self.initial_radius)
 
@@ -95,8 +92,12 @@ class Menu(tk.Tk):
         mode_menu.grid(row=row, column=1)
         row += 1
 
-        add_entry("Fin de croissance (a)", self.exp_a)
-        add_entry("Début de décroissance (b)", self.exp_b)
+        add_entry("Fin de croissance (a)", self.end_growth)
+        add_entry("Début de décroissance (b)", self.start_degrowth)
+        add_entry("Durée de l'animation (en seconde)", self.animation_duration)
+        add_entry("Début de la transition de couleur", self.transition_begin)
+        add_entry("Fin de la transition de couleur", self.transition_end)
+
 
         tk.Checkbutton(self, text="Plein écran", variable=self.fullscreen).grid(row=row, column=0, columnspan=2,
                                                                                 sticky="w")
@@ -137,8 +138,10 @@ class Menu(tk.Tk):
 
         # Mise à jour de la courbe à chaque changement
         self.growth_mode.trace_add("write", self.draw_curve)
-        self.exp_a.trace_add("write", self.draw_curve)
-        self.exp_b.trace_add("write", self.draw_curve)
+        self.end_growth.trace_add("write", self.draw_curve)
+        self.start_degrowth.trace_add("write", self.draw_curve)
+        self.transition_begin.trace_add("write", self.draw_curve)
+        self.transition_end.trace_add("write", self.draw_curve)
 
         self.draw_curve()
 
@@ -161,11 +164,20 @@ class Menu(tk.Tk):
 
         # Paramètres de la courbe
         mode = GrowthMode(self.growth_mode.get())
-        a = self.exp_a.get()
-        b = self.exp_b.get()
+        a = self.end_growth.get()
+        b = self.start_degrowth.get()
+        transition_start = self.transition_begin.get()
+        transition_end = self.transition_end.get()
+
+        # Tracer les lignes horizontales
+        y_transition_start = height - padding_bottom - transition_start * plot_height
+        y_transition_end = height - padding_bottom - transition_end * plot_height
+
 
         steps = 100
         points = []
+        last_x = None
+        last_y = None
 
         for i in range(steps + 1):
             progress = i / steps
@@ -173,36 +185,66 @@ class Menu(tk.Tk):
             x_px = padding_left + progress * plot_width
             y_px = height - padding_bottom - y * plot_height
             points.append((x_px, y_px))
+        
+            # Vérifier les intersections
+            if last_y is not None:
+                current_y_normalized = y
+                last_y_normalized = last_y
+
+                # Intersection avec transition_start
+                if ((last_y_normalized - transition_start) * (current_y_normalized - transition_start) <= 0 and
+                    last_y_normalized != current_y_normalized):
+                    ratio = (transition_start - last_y_normalized) / (current_y_normalized - last_y_normalized)
+                    x_intersect = last_x + (x_px - last_x) * ratio
+                    self.curve_canvas.create_oval(
+                        x_intersect - 4, y_transition_start - 4,
+                        x_intersect + 4, y_transition_start + 4,
+                        fill="red", outline="darkred"
+                    )
+
+                # Intersection avec transition_end
+                if ((last_y_normalized - transition_end) * (current_y_normalized - transition_end) <= 0 and
+                    last_y_normalized != current_y_normalized):
+                    ratio = (transition_end - last_y_normalized) / (current_y_normalized - last_y_normalized)
+                    x_intersect = last_x + (x_px - last_x) * ratio
+                    self.curve_canvas.create_oval(
+                        x_intersect - 4, y_transition_end - 4,
+                        x_intersect + 4, y_transition_end + 4,
+                        fill="red", outline="darkblue"
+                    )
+
+            last_x = x_px
+            last_y = y
 
         # Tracer la courbe
         for i in range(len(points) - 1):
             self.curve_canvas.create_line(*points[i], *points[i + 1], fill="blue", width=2)
 
-        # Axe X
-        self.curve_canvas.create_line(
-            padding_left, height - padding_bottom,
-                          width - padding_right, height - padding_bottom,
-            arrow=tk.LAST
-        )
+            # Axe X
+            self.curve_canvas.create_line(
+                padding_left, height - padding_bottom,
+                width - padding_right, height - padding_bottom,
+                arrow=tk.LAST
+            )
 
-        # Axe Y
-        self.curve_canvas.create_line(
-            padding_left, height - padding_bottom,
-            padding_left, padding_top,
-            arrow=tk.LAST
-        )
+            # Axe Y
+            self.curve_canvas.create_line(
+                padding_left, height - padding_bottom,
+                padding_left, padding_top,
+                arrow=tk.LAST
+            )
 
-        # Graduations X (0 à 1)
-        for i in range(0, 11):
-            x = padding_left + i * plot_width / 10
-            self.curve_canvas.create_line(x, height - padding_bottom, x, height - padding_bottom + 5)
-            self.curve_canvas.create_text(x, height - padding_bottom + 15, text=f"{i / 10:.1f}", font=("Arial", 8))
+            # Graduations X (0 à 1)
+            for i in range(0, 11):
+                x = padding_left + i * plot_width / 10
+                self.curve_canvas.create_line(x, height - padding_bottom, x, height - padding_bottom + 5)
+                self.curve_canvas.create_text(x, height - padding_bottom + 15, text=f"{i / 10:.1f}", font=("Arial", 8))
 
-        # Graduations Y (0 à 1)
-        for i in range(0, 6):
-            y = height - padding_bottom - i * plot_height / 5
-            self.curve_canvas.create_line(padding_left - 5, y, padding_left, y)
-            self.curve_canvas.create_text(padding_left - 10, y, text=f"{i / 5:.1f}", font=("Arial", 8), anchor="e")
+            # Graduations Y (0 à 1)
+            for i in range(0, 6):
+                y = height - padding_bottom - i * plot_height / 5
+                self.curve_canvas.create_line(padding_left - 5, y, padding_left, y)
+                self.curve_canvas.create_text(padding_left - 10, y, text=f"{i / 5:.1f}", font=("Arial", 8), anchor="e")
 
     def rgb_to_hex(self, rgb):
         return "#%02x%02x%02x" % rgb
@@ -226,35 +268,30 @@ class Menu(tk.Tk):
             self.gradient_end_preview.config(bg=self.rgb_to_hex(self.gradient_color_end))
 
     def choose_color_a(self):
-        color = colorchooser.askcolor(initialcolor=self.rgb_to_hex(self.color_a))
+        color = colorchooser.askcolor(initialcolor=self.rgb_to_hex(self.color_begin))
         if color[0]:
-            self.color_a = tuple(int(c) for c in color[0])
-            self.color_a_preview.config(bg=self.rgb_to_hex(self.color_a))
+            self.color_begin = tuple(int(c) for c in color[0])
+            self.color_a_preview.config(bg=self.rgb_to_hex(self.color_begin))
 
     def choose_color_b(self):
-        color = colorchooser.askcolor(initialcolor=self.rgb_to_hex(self.color_b))
+        color = colorchooser.askcolor(initialcolor=self.rgb_to_hex(self.color_end))
         if color[0]:
-            self.color_b = tuple(int(c) for c in color[0])
-            self.color_b_preview.config(bg=self.rgb_to_hex(self.color_b))
+            self.color_end = tuple(int(c) for c in color[0])
+            self.color_b_preview.config(bg=self.rgb_to_hex(self.color_end))
 
     def launch_pygame(self):
         params = {
             "background_color": self.bg_color,
-            "color_a": self.color_a,
-            "color_b": self.color_b,
-            "growth_duration": self.growth_duration.get(),
+            "color_begin": self.color_begin,
+            "color_end": self.color_end,
             "max_radius": self.max_radius.get(),
             "shape_type": Shape(self.shape_type.get()),
             "initial_radius": self.initial_radius.get(),
             "fullscreen": self.fullscreen.get(),
             "growth_mode": GrowthMode(self.growth_mode.get()),
-            "exp_a": self.exp_a.get(),
-            "exp_b": self.exp_b.get(),
-            "color_change_start": self.color_change_start.get(),
-            "color_transition_duration": self.color_transition_duration.get(),
-            "use_gradient_bg": self.use_gradient_bg.get(),
-            "gradient_color_start": self.gradient_color_start,
-            "gradient_color_end": self.gradient_color_end,
+            "animation_duration": self.animation_duration.get(),
+            "end_growth": self.end_growth.get(),
+            "start_degrowth": self.start_degrowth.get(),
             "show_animals": self.show_animals.get(),
             "bulle_speed_min": self.bulle_speed_min.get(),
             "bulle_speed_max": self.bulle_speed_max.get(),
