@@ -26,7 +26,7 @@ class ThreatsManager(EntityManager):
                  growth_duration, max_radius, shape_type, initial_radius, growth_mode,
                  exp_a, exp_b, use_gradient_bg, gradient_color_start, gradient_color_end):
         super().__init__(1)
-        self.entities = [Threat(shape=shape_type)]
+        self.entities = [Threat(shape=shape_type, radius=initial_radius, max_radius=max_radius, color=color_a)]
 
         self.color_a = color_a
         self.color_b = color_b

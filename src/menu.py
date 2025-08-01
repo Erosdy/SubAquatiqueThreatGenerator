@@ -23,13 +23,13 @@ class Menu(tk.Tk):
         self.growth_duration = tk.DoubleVar(value=5.0)
         self.color_change_start = tk.DoubleVar(value=2.5)
         self.color_transition_duration = tk.DoubleVar(value=2.0)
-        self.max_radius = tk.IntVar(value=290)
+        self.max_radius = tk.IntVar(value=500)
         self.initial_radius = tk.IntVar(value=10)
         self.shape_type = tk.StringVar(value=Shape.CIRCLE.value)
 
         self.growth_mode = tk.StringVar(value="linear")
-        self.exp_a = tk.DoubleVar(value=0.3)
-        self.exp_b = tk.DoubleVar(value=0.7)
+        self.exp_a = tk.DoubleVar(value=0.45)
+        self.exp_b = tk.DoubleVar(value=0.55)
 
         self.show_animals = tk.BooleanVar(value=True)
         self.bulle_speed_min = tk.DoubleVar(value=3.0)
