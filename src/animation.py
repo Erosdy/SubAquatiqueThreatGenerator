@@ -29,10 +29,8 @@ def run(background_color, color_a, color_b, color_change_start, color_transition
     bubbles_manager = BubblesManager(show_animals=show_animals, delay_min_s=bulle_delay_min_s,
                                      delay_max_s=bulle_delay_max_s, min_speed=bulle_speed_min,
                                      max_speed=bulle_speed_max)
-    threats_manager = ThreatsManager(fps=FPS, color_a=color_a, color_b=color_b,
-                                     color_change_start=color_change_start,
-                                     color_transition_duration=color_transition_duration,
-                                     growth_duration=growth_duration, max_radius=max_radius,
+    threats_manager = ThreatsManager(color_a=color_a, color_b=color_b,
+                                     max_radius=max_radius,
                                      shape_type=shape_type, initial_radius=initial_radius,
                                      growth_mode=growth_mode, exp_a=exp_a, exp_b=exp_b,
                                      use_gradient_bg=use_gradient_bg,
@@ -50,7 +48,7 @@ def run(background_color, color_a, color_b, color_change_start, color_transition
                 running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
-                    threats_manager.play_or_pause()
+                    continue
                 elif event.key == pygame.K_r:
                     threats_manager.reset()
                 elif event.key == pygame.K_ESCAPE:

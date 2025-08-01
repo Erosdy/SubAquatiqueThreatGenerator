@@ -5,7 +5,7 @@ from enum import Enum
 class GrowthMode(Enum):
     LINEAR = "linear"
     SIGMOIDAL = "sigmoïdal"
-    POWER = "power"
+    EXPONENTIEL = "exponentiel"
 
 
 def linear_growth(x, a, b) -> float:
@@ -50,7 +50,7 @@ def compute_growth(x, mode, a, b) -> float:
         return linear_growth(x, a, b)
     elif mode == GrowthMode.SIGMOIDAL:
         return simgmoidal_growth(x, a, b)
-    elif mode == GrowthMode.POWER:
+    elif mode == GrowthMode.EXPONENTIEL:
         return exponentiel_growth(x, a, b)
 
     return 0
